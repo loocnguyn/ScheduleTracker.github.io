@@ -1,0 +1,21 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+.add-task {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.task {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+}
