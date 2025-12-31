@@ -5,14 +5,16 @@ function save() {
 }
 
 function format(ms) {
-  const s = Math.floor(ms / 1000);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  return `${h}h ${m}m`;
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h}h ${m}m ${s}s`;
 }
 
 function addTask() {
-  const name = document.getElementById("taskName").value.trim();
+  const input = document.getElementById("taskName");
+  const name = input.value.trim();
   if (!name) return;
 
   tasks.push({
@@ -23,28 +25,28 @@ function addTask() {
     start: null
   });
 
+  input.value = "";
   save();
   render();
-  document.getElementById("taskName").value = "";
 }
 
 function startTask(id) {
-  const t = tasks.find(x => x.id === id);
-  if (t.running) return;
+  const task = tasks.find(t => t.id === id);
+  if (!task || task.running) return;
 
-  t.running = true;
-  t.start = Date.now();
+  task.running = true;
+  task.start = Date.now();
   save();
   render();
 }
 
 function endTask(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t.running) return;
+  const task = tasks.find(t => t.id === id);
+  if (!task || !task.running) return;
 
-  t.total += Date.now() - t.start;
-  t.running = false;
-  t.start = null;
+  task.total += Date.now() - task.start;
+  task.running = false;
+  task.start = null;
   save();
   render();
 }
@@ -53,12 +55,27 @@ function render() {
   const list = document.getElementById("taskList");
   list.innerHTML = "";
 
-  tasks.forEach(t => {
+  tasks.forEach(task => {
     const li = document.createElement("li");
     li.className = "task";
 
+    const runningTime = task.running
+      ? task.total + (Date.now() - task.start)
+      : task.total;
+
     li.innerHTML = `
-      <b>${t.name}</b><br/>
-      Tổng thời gian: ${format(t.total)}<br/>
-      <button onclick="startTask(${t.id})">Start</button>
-     
+      <b>${task.name}</b><br>
+      Tổng thời gian: ${format(runningTime)}<br>
+      <button onclick="startTask(${task.id})">Start</button>
+      <button onclick="endTask(${task.id})">End</button>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+// render khi load lại trang
+render();
+
+// cập nhật realtime mỗi giây
+setInterval(render, 1000);
