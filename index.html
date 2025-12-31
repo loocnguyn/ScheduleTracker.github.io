@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>My Website</title>
+  <meta charset="UTF-8" />
+  <title>Work Time Tracker</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Hello GitHub Pages</h1>
-  <p>Web cá nhân của tôi</p>
+  <h1>⏱ Work Time Tracker</h1>
+
+  <div class="add-task">
+    <input id="taskName" placeholder="Tên công việc..." />
+    <button onclick="addTask()">Thêm</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <script src="script.js"></script>
 </body>
 </html>
