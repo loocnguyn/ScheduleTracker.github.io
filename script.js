@@ -1,15 +1,40 @@
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+const STORAGE_KEY = "tasks_v2";
+
+let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 function save() {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
 function format(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  return `${h}h ${m}m ${s}s`;
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${h}h ${m}m ${sec}s`;
+}
+
+function render() {
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  const now = Date.now();
+
+  tasks.forEach(t => {
+    const li = document.createElement("li");
+    li.className = "task";
+
+    const time = t.start ? t.total + (now - t.start) : t.total;
+
+    li.innerHTML = `
+      <b>${t.name}</b><br>
+      ⏱ ${format(time)}<br>
+      <button data-id="${t.id}" class="start">Start</button>
+      <button data-id="${t.id}" class="end">End</button>
+    `;
+
+    list.appendChild(li);
+  });
 }
 
 function addTask() {
@@ -21,7 +46,6 @@ function addTask() {
     id: Date.now(),
     name,
     total: 0,
-    running: false,
     start: null
   });
 
@@ -30,52 +54,35 @@ function addTask() {
   render();
 }
 
-function startTask(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task || task.running) return;
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("start")) {
+    startTask(+e.target.dataset.id);
+  }
+  if (e.target.classList.contains("end")) {
+    endTask(+e.target.dataset.id);
+  }
+});
 
-  task.running = true;
-  task.start = Date.now();
+function startTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t || t.start) return;
+
+  t.start = Date.now();
   save();
   render();
 }
 
 function endTask(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task || !task.running) return;
+  const t = tasks.find(x => x.id === id);
+  if (!t || !t.start) return;
 
-  task.total += Date.now() - task.start;
-  task.running = false;
-  task.start = null;
+  t.total += Date.now() - t.start;
+  t.start = null;
   save();
   render();
 }
 
-function render() {
-  const list = document.getElementById("taskList");
-  list.innerHTML = "";
+document.getElementById("addBtn").addEventListener("click", addTask);
 
-  tasks.forEach(task => {
-    const li = document.createElement("li");
-    li.className = "task";
-
-    const runningTime = task.running
-      ? task.total + (Date.now() - task.start)
-      : task.total;
-
-    li.innerHTML = `
-      <b>${task.name}</b><br>
-      Tổng thời gian: ${format(runningTime)}<br>
-      <button onclick="startTask(${task.id})">Start</button>
-      <button onclick="endTask(${task.id})">End</button>
-    `;
-
-    list.appendChild(li);
-  });
-}
-
-// render khi load lại trang
 render();
-
-// cập nhật realtime mỗi giây
 setInterval(render, 1000);
